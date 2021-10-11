@@ -15,7 +15,7 @@ clt <- function(sample_size, n_samples) {
         means[i] <- mean(samples[[i]])
     }
     
-    # collect the results in a dataframe to use with ggplot
+    # collect the results in a dataframe for ggplot
     df <- data.frame(
         sample_means = means
     )
@@ -41,14 +41,16 @@ ui <- fluidPage(
                         value = 500, min = 10, max = 1000)
         ),
         column(2,
-            # slider selection for number of samples
+            # checkbox selection for additional references in the plot
             checkboxInput("poly", "Frequency polygon", value = FALSE),
             checkboxInput("refline", "Reference line (mean)", value = FALSE)
         )
     ),
-    # plot
+
     fluidRow(
+        # plot
         column(8, plotOutput(outputId = "plot")),
+        # summary table
         column(2, verbatimTextOutput(outputId = "summary"))
     )
 )
