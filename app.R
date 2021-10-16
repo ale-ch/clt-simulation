@@ -1,32 +1,21 @@
 library(shiny)
 library(ggplot2)
+library(purrr)
 
 clt <- function(sample_size, n_samples, theta) {
     
-    # N samples of size n 
-    samples <- list()
+    # generate N random bernoulli samples of size n, then take the mean of each sample
+    means <- map_dbl(1:n_samples, ~ mean(rbinom(sample_size, 1, theta)))
     
-    # mean of each sample
-    means <- vector("double")
-    
-    # repeat for desired sample size
-    for(i in 1:n_samples) {
-        samples[[i]] <- rbinom(sample_size, 1, theta)
-        means[i] <- mean(samples[[i]])
-    }
-    
-    # collect the results in a dataframe to use with ggplot
-    df <- data.frame(
-        sample_means = means
-    )
-    
+    # collect results in a dataframe to use with ggplot
+    df <- data.frame(sample_means = means)
     df
     
 }
 
 ui <- fluidPage(
     
-    # Title
+    # title
     titlePanel("Simulation of central limit theorem - Bernoulli distribution"),
     fluidRow(
         column(4,
@@ -41,7 +30,7 @@ ui <- fluidPage(
                         value = 500, min = 10, max = 1000)
         ),
         column(4, 
-               # slider selection for parameter theta
+               # slider selection for number of samples
                sliderInput(inputId = "theta", label = "Theta", 
                            value = 0.5, min = 0, max = 1)
         )
@@ -58,7 +47,7 @@ ui <- fluidPage(
 
 
 server <- function(input, output, session) {
-    # the simulation is updated every second 
+    # update simulation every 1000ms
     timer <- reactiveTimer(1000)
     
     means <- reactive({
@@ -85,8 +74,7 @@ server <- function(input, output, session) {
             
             
         
-        # nested if statements to modify the plot with the frequency polygon  
-        # and the reference line 
+        # nested if statements to modify the plot with the frequency polygon and the reference line 
         if(input$poly == TRUE & input$refline == TRUE) {
             p + 
                 geom_vline(xintercept = x_int, linetype = "dotted",
