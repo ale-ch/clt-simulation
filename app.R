@@ -1,7 +1,7 @@
 library(shiny)
 library(ggplot2)
 
-clt <- function(sample_size, n_samples) {
+clt <- function(sample_size, n_samples, theta) {
     
     # N samples of size n 
     samples <- list()
@@ -11,11 +11,11 @@ clt <- function(sample_size, n_samples) {
     
     # repeat for desired sample size
     for(i in 1:n_samples) {
-        samples[[i]] <- rbinom(sample_size, 1, 0.5)
+        samples[[i]] <- rbinom(sample_size, 1, theta)
         means[i] <- mean(samples[[i]])
     }
     
-    # collect the results in a dataframe for ggplot
+    # collect the results in a dataframe to use with ggplot
     df <- data.frame(
         sample_means = means
     )
@@ -29,29 +29,30 @@ ui <- fluidPage(
     # Title
     titlePanel("Simulation of central limit theorem - Bernoulli distribution"),
     fluidRow(
-        column(5,
+        column(4,
             # slider selection for sample size
             sliderInput(inputId = "samp_size", 
                         label = "Sample Size n", value = 200, min = 100, 
                         max = 1000)
         ),
-        column(5, 
+        column(4, 
             # slider selection for number of samples
             sliderInput(inputId = "n_samples", label = "Samples N", 
                         value = 500, min = 10, max = 1000)
         ),
-        column(2,
-            # checkbox selection for additional references in the plot
-            checkboxInput("poly", "Frequency polygon", value = FALSE),
-            checkboxInput("refline", "Reference line (mean)", value = FALSE)
+        column(4, 
+               # slider selection for parameter theta
+               sliderInput(inputId = "theta", label = "Theta", 
+                           value = 0.5, min = 0, max = 1)
         )
     ),
-
+    # plot
     fluidRow(
-        # plot
         column(8, plotOutput(outputId = "plot")),
-        # summary table
-        column(2, verbatimTextOutput(outputId = "summary"))
+        column(4, checkboxInput("poly", "Frequency polygon", value = FALSE),
+               checkboxInput("refline", "Reference line (mean)", value = FALSE),
+               verbatimTextOutput(outputId = "summary")
+               )
     )
 )
 
@@ -62,7 +63,7 @@ server <- function(input, output, session) {
     
     means <- reactive({
         timer()
-        clt(input$samp_size, input$n_samples)})
+        clt(input$samp_size, input$n_samples, input$theta)})
     
     output$summary <- renderPrint({
         timer()
@@ -80,7 +81,7 @@ server <- function(input, output, session) {
             xlab("Sample averages") +
             ylab("Count") +
             scale_y_continuous() +
-            scale_x_continuous(limits = c(0.28, 0.72))
+            scale_x_continuous(limits = c(0, 1))
             
             
         
